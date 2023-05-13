@@ -3,6 +3,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
+#include <limits.h>
+#include <sys/stat.h>
 
 #define BUFFER_SIZE 1024
 
@@ -35,5 +37,55 @@ void mostraFicheiro(const char *ficheiro) {
     }
 }
 
+void copiaFicheiro(const char *ficheiro) {
+    int fdIn, fdOut;
+    ssize_t bytesPorLeitura, bytesPorEscrita;
+    char buffer[BUFFER_SIZE];
+    char nomeCopia[PATH_MAX];
+
+    // Abrir o ficheiro original em modo de leitura
+    fdIn = open(ficheiro, O_RDONLY);
+    if (fdIn == -1) {
+        perror("open");
+        exit(EXIT_FAILURE);
+    }
+
+    // Gerar o nome do ficheiro cópia adicionando ".copia" ao nome original
+    snprintf(nomeCopia, PATH_MAX, "%s.copia", ficheiro);
+
+    // Criar o ficheiro cópia em modo de escrita
+    fdOut = open(nomeCopia, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+    if (fdOut == -1) {
+        perror("open");
+        exit(EXIT_FAILURE);
+    }
+
+    // Copiar o conteúdo do ficheiro original para o ficheiro cópia
+    while ((bytesPorLeitura = read(fdIn, buffer, BUFFER_SIZE)) > 0) {
+        bytesPorEscrita = write(fdOut, buffer, bytesPorLeitura);
+        if (bytesPorEscrita != bytesPorLeitura) {
+            fprintf(stderr, "Erro ao escrever no ficheiro cópia\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    if (bytesPorLeitura == -1) {
+        perror("read");
+        exit(EXIT_FAILURE);
+    }
+
+    // Fechar os descritores dos ficheiros
+    if (close(fdIn) == -1) {
+        perror("close");
+        exit(EXIT_FAILURE);
+    }
+
+    if (close(fdOut) == -1) {
+        perror("close");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("O ficheiro %s foi copiado para %s\n", ficheiro, nomeCopia);
+}
 
 

@@ -1,8 +1,9 @@
-#include <stdio.h>
-#include "mostrar.h"
+#include "funcoes.h"
 
 int main(){
 
     mostraFicheiro("exemplo");
+    copiaFicheiro("exemplo");
+    
 }
 
