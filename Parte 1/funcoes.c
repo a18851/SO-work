@@ -88,4 +88,49 @@ void copiaFicheiro(const char *ficheiro) {
     printf("O ficheiro %s foi copiado para %s\n", ficheiro, nomeCopia);
 }
 
+void acrescentaFicheiro(const char *origem, const char *destino) {
+    int fdOrigem, fdDestino;
+    ssize_t bytesPorLeitura, bytesPorEscrita;
+    char buffer[BUFFER_SIZE];
 
+    // Abrir o ficheiro origem em modo de leitura
+    fdOrigem = open(origem, O_RDONLY);
+    if (fdOrigem == -1) {
+        fprintf(stderr, "Erro ao abrir o ficheiro origem: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    // Abrir o ficheiro destino em modo de escrita com a flag O_APPEND
+    fdDestino = open(destino, O_WRONLY | O_APPEND);
+    if (fdDestino == -1) {
+        fprintf(stderr, "Erro ao abrir o ficheiro destino: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    // Copiar o conteúdo do ficheiro origem para o ficheiro destino
+    while ((bytesPorLeitura = read(fdOrigem, buffer, BUFFER_SIZE)) > 0) {
+        bytesPorEscrita = write(fdDestino, buffer, bytesPorLeitura);
+        if (bytesPorEscrita != bytesPorLeitura) {
+            fprintf(stderr, "Erro ao escrever no ficheiro destino: %s\n", strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    if (bytesPorLeitura == -1) {
+        fprintf(stderr, "Erro ao ler do ficheiro origem: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    // Fechar os descritores dos ficheiros
+    if (close(fdOrigem) == -1) {
+        fprintf(stderr, "Erro ao fechar o ficheiro origem: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    if (close(fdDestino) == -1) {
+        fprintf(stderr, "Erro ao fechar o ficheiro destino: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    printf("O ficheiro %s foi acrescentado ao ficheiro %s\n", origem, destino);
+}

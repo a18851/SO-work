@@ -3,7 +3,8 @@
 
 
 void mostraFicheiro(const char *ficheiro);
-void copiaFicheiro(const char *ficheiro)
+void copiaFicheiro(const char *ficheiro);
+void acrescentaFicheiro(const char *origem, const char *destino);
 
 
 #endif
