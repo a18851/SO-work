@@ -8,6 +8,9 @@
 #include <sys/types.h>
 #include <time.h>
 #include <string.h>
+#include <dirent.h>
+#include <pwd.h>
+
 
 #define BUFFER_SIZE 1024
 
@@ -143,7 +146,7 @@ int contaFicheiro(char *ficheiro) {
     char buffer[BUFFER_SIZE];
 
     // Abrir o ficheiro para leitura
-    fd = open(nome_ficheiro, O_RDONLY);
+    fd = open(ficheiro, O_RDONLY);
     if (fd == -1) {
         perror("Erro ao abrir ficheiro");
         exit(EXIT_FAILURE);
@@ -181,12 +184,13 @@ void removeFicheiro(const char *ficheiro) {
     }
 }
 
-int informa_ficheiro(char *filename) {
+int informaFicheiro(char *filename) {
     struct stat file_stat;
     if (stat(filename, &file_stat) == -1) {
         fprintf(stderr, "Erro ao obter informações do arquivo: %s\n", strerror(errno));
         return 1;
     }
+
 
     char *file_type;
     if (S_ISREG(file_stat.st_mode)) {
@@ -217,6 +221,39 @@ int informa_ficheiro(char *filename) {
     printf("Criado em: %s\n", created_time);
     printf("Última modificação: %s\n", modified_time);
     printf("Último acesso: %s\n", accessed_time);
+
+    return 0;
+}
+
+int lista(char *dir_name) {
+    DIR *dir = opendir(dir_name);
+    if (dir == NULL) {
+        fprintf(stderr, "Erro ao abrir diretoria: %s\n", strerror(errno));
+        return 1;
+    }
+
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL) {
+        char path[1024];
+        snprintf(path, sizeof(path), "%s/%s", dir_name, entry->d_name);
+
+        struct stat file_stat;
+        if (stat(path, &file_stat) == -1) {
+            fprintf(stderr, "Erro ao obter informações do arquivo: %s\n", strerror(errno));
+            return 1;
+        }
+
+        if (S_ISDIR(file_stat.st_mode)) {
+            printf("%s [Pasta]\n", entry->d_name);
+        } else {
+            printf("%s\n", entry->d_name);
+        }
+    }
+
+    if (closedir(dir) == -1) {
+        fprintf(stderr, "Erro ao fechar diretoria: %s\n", strerror(errno));
+        return 1;
+    }
 
     return 0;
 }
