@@ -5,6 +5,9 @@
 #include <errno.h>
 #include <limits.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <time.h>
+#include <string.h>
 
 #define BUFFER_SIZE 1024
 
@@ -172,8 +175,48 @@ int contaFicheiro(char *ficheiro) {
 }
 
 void removeFicheiro(const char *ficheiro) {
-    int status = unlink(filename);
+    int status = unlink(ficheiro);
     if (status == -1) {
         perror("Erro a remover ficheiro");
     }
+}
+
+int informa_ficheiro(char *filename) {
+    struct stat file_stat;
+    if (stat(filename, &file_stat) == -1) {
+        fprintf(stderr, "Erro ao obter informações do arquivo: %s\n", strerror(errno));
+        return 1;
+    }
+
+    char *file_type;
+    if (S_ISREG(file_stat.st_mode)) {
+        file_type = "Arquivo regular";
+    } else if (S_ISDIR(file_stat.st_mode)) {
+        file_type = "Diretório";
+    } else if (S_ISLNK(file_stat.st_mode)) {
+        file_type = "Link simbólico";
+    } else {
+        file_type = "Tipo de arquivo desconhecido";
+    }
+
+    struct passwd *pw = getpwuid(file_stat.st_uid);
+    if (pw == NULL) {
+        fprintf(stderr, "Erro ao obter informações do dono do arquivo: %s\n", strerror(errno));
+        return 1;
+    }
+
+    char created_time[20], modified_time[20], accessed_time[20];
+    strftime(created_time, sizeof(created_time), "%b %d %Y %H:%M:%S", localtime(&file_stat.st_ctime));
+    strftime(modified_time, sizeof(modified_time), "%b %d %Y %H:%M:%S", localtime(&file_stat.st_mtime));
+    strftime(accessed_time, sizeof(accessed_time), "%b %d %Y %H:%M:%S", localtime(&file_stat.st_atime));
+
+    printf("%s:\n", filename);
+    printf("Tipo: %s\n", file_type);
+    printf("Número I-node: %ld\n", (long) file_stat.st_ino);
+    printf("Dono: %s\n", pw->pw_name);
+    printf("Criado em: %s\n", created_time);
+    printf("Última modificação: %s\n", modified_time);
+    printf("Último acesso: %s\n", accessed_time);
+
+    return 0;
 }
