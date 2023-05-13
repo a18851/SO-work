@@ -134,3 +134,40 @@ void acrescentaFicheiro(const char *origem, const char *destino) {
 
     printf("O ficheiro %s foi acrescentado ao ficheiro %s\n", origem, destino);
 }
+
+int contaFicheiro(char *ficheiro) {
+    int fd, nr, linhas = 0;
+    char buffer[BUFFER_SIZE];
+
+    // Abrir o ficheiro para leitura
+    fd = open(nome_ficheiro, O_RDONLY);
+    if (fd == -1) {
+        perror("Erro ao abrir ficheiro");
+        exit(EXIT_FAILURE);
+    }
+
+    // Ler o conteúdo do ficheiro em blocos de tamanho BUFFER_SIZE
+    while ((nr = read(fd, buffer, BUFFER_SIZE)) > 0) {
+        // Percorrer o buffer e contar o número de linhas
+        for (int i = 0; i < nr; i++) {
+            if (buffer[i] == '\n') {
+                linhas++;
+            }
+        }
+    }
+
+    // Verificar se ocorreu um erro na leitura
+    if (nr == -1) {
+        perror("Erro ao ler ficheiro");
+        exit(EXIT_FAILURE);
+    }
+
+    // Fechar o ficheiro
+    if (close(fd) == -1) {
+        perror("Erro ao fechar ficheiro");
+        exit(EXIT_FAILURE);
+    }
+
+    return linhas;
+}
+
