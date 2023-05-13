@@ -171,3 +171,9 @@ int contaFicheiro(char *ficheiro) {
     return linhas;
 }
 
+void removeFicheiro(const char *ficheiro) {
+    int status = unlink(filename);
+    if (status == -1) {
+        perror("Erro a remover ficheiro");
+    }
+}
